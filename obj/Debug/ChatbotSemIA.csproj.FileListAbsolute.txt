@@ -1,0 +1,7 @@
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\bin\Debug\ChatbotSemIA.exe.config
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\bin\Debug\ChatbotSemIA.exe
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\bin\Debug\ChatbotSemIA.pdb
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\obj\Debug\ChatbotSemIA.csproj.AssemblyReference.cache
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\obj\Debug\ChatbotSemIA.csproj.CoreCompileInputs.cache
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\obj\Debug\ChatbotSemIA.exe
+C:\Users\emannuel\source\repos\ChatbotSemIA\ChatbotSemIA\obj\Debug\ChatbotSemIA.pdb
