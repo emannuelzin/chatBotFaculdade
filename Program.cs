@@ -1,151 +1,223 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.Xml.Schema;
-using ChatbotSemIA;
-using System.Threading;
-using Validadores;
-public class Program
+using System.Text.RegularExpressions;
+using Alunos;
+
+namespace Validadores
 {
-    public static void Main()
+    public class ValidadorNome
     {
-        Console.WriteLine("Chatbot: Bem-vindo ao nosso atendimento!");
-
-
-        ValidadorNome validadorNome = new ValidadorNome();
-        string nomeUsuario = validadorNome.SolicitarNome();
-        Console.WriteLine($"Chatbot: Olá, {nomeUsuario}!");
-
-        ValidadorTelefone validadorTelefone = new ValidadorTelefone();
-        string telefoneUsuario = validadorTelefone.Validar();
-
-        ValidadorEmail validadorEmail = new ValidadorEmail();
-        string emailUsuario= validadorEmail.Validar();
-
-        ValidadorCPF validadorCpf = new ValidadorCPF();
-        string cpfUsuario = validadorCpf.Validar();
-
-
-
-        Console.WriteLine("Chatbot: Seus dados foram confirmados com sucesso.");
-        Console.WriteLine("=================================================\n");
-
-
-        var chatbot = new Chatbot(nomeUsuario);
-        chatbot.Iniciar();
-    }
-}
-
-
-
-
-public class Chatbot
-{
-    private readonly string nomeUsuario;
-    private readonly Dictionary<string, Action> _comandos;
-
-    public Chatbot(string nome)
-    {
-        nomeUsuario = nome;
-        _comandos = new Dictionary<string, Action>
+        public string SolicitarNome()
         {
-            { "tutoria", ComandoTutoria },
-            { "tesouraria", ComandoTesouraria },
-            { "secretaria", ComandoSecretaria }
-        };
+            string nome = "";
+            while (string.IsNullOrWhiteSpace(nome))
+            {
+                Console.Write("Chatbot: Me informe seu nome: ");
+                nome = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(nome))
+                {
+                    Console.WriteLine("Chatbot: Nome inválido. Por favor, digite seu nome.");
+                }
+            }
+
+            return nome;
+        }
     }
 
-    public void Iniciar()
+    public class ValidadorTelefone
     {
-        Console.WriteLine($"Seja bem-vindo(a), {nomeUsuario}!");
-        Console.WriteLine("Eu sou uma invenção maluca do Matheus, tentando copiar a UNIPÊ.");
-        Console.WriteLine("Informe sobre o que deseja tratar!");
-        Console.WriteLine("Atualmente atendemos:");
-        Console.WriteLine("TESOURARIA");
-        Console.WriteLine("SECRETARIA");
-        Console.WriteLine("TUTORIA");
-        Console.WriteLine("Digite 'sair' para encerrar.");
-
-        while (true)
+        public string Validar()
         {
-            Console.Write("\nVocê: ");
-            string input = Console.ReadLine().ToLower();
+            string telefoneDigitado = "";
+            Regex regex = new Regex(@"^(\+\d{2})?([1-9]{2})?(\d{4,5})(\d{4})$");
+            while (true)
+            {
+                Console.Write("Chatbot: Me informe seu Telefone: ");
+                telefoneDigitado = Console.ReadLine();
+                if (regex.IsMatch(telefoneDigitado))
+                {
+                    Console.WriteLine("Chatbot: Telefone VALIDADO COM SUCESSO");
+                    return telefoneDigitado;
+                }
+                else
+                {
+                    Console.WriteLine("Chatbot: Telefone INVÁLIDO. Tente novamente.");
+                }
+            }
+        }
+    }
 
-            if (input == "sair")
+    public class ValidadorEmail
+    {
+        public string Validar()
+        {
+            string emailUsuario = "";
+            Regex regex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            while (true)
             {
-                Console.WriteLine($"\nChatbot: Até mais, {nomeUsuario}!");
-                break;
+                Console.Write("Chatbot: Me informe seu e-mail: ");
+                emailUsuario = Console.ReadLine();
+                if (regex.IsMatch(emailUsuario))
+                {
+                    Console.WriteLine("Chatbot: E-mail VALIDADO COM SUCESSO");
+                    return emailUsuario;
+                }
+                else
+                {
+                    Console.WriteLine("Chatbot: e-mail INVÁLIDO. Tente novamente.");
+                }
+            }
+        }
+    }
+
+    public class ValidadorCPF
+    {
+        public string Validar()
+        {
+            while (true)
+            {
+                Console.Write("Chatbot: Me informe seu CPF: ");
+                string cpfDigitado = Console.ReadLine();
+                if (ValidarCPF(cpfDigitado))
+                {
+                    Console.WriteLine("Chatbot: CPF VALIDADO COM SUCESSO");
+                    return cpfDigitado;
+                }
+                else
+                {
+                    Console.WriteLine("Chatbot: CPF INVÁLIDO. Tente novamente.");
+                }
+            }
+        }
+
+        public static bool ValidarCPF(string cpf)
+        {
+            if (string.IsNullOrWhiteSpace(cpf))
+                return false;
+            cpf = new string(cpf.Where(char.IsDigit).ToArray());
+            if (cpf.Length != 11 || cpf.Distinct().Count() == 1)
+                return false;
+            return cpf.EndsWith(CalcularDigitosVerificadores(cpf.Substring(0, 9)));
+        }
+
+        private static string CalcularDigitosVerificadores(string baseCpf)
+        {
+            int CalcularDigito(string cpfParcial, int[] pesos)
+            {
+                int soma = 0;
+                for (int i = 0; i < cpfParcial.Length; i++)
+                {
+                    soma += (cpfParcial[i] - '0') * pesos[i];
+                }
+
+                int resto = soma % 11;
+                return resto < 2 ? 0 : 11 - resto;
             }
 
-            if (input.Contains("tutoria"))
+            int[] multiplicador1 = { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+            int[] multiplicador2 = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+            int digito1 = CalcularDigito(baseCpf, multiplicador1);
+            int digito2 = CalcularDigito(baseCpf + digito1, multiplicador2);
+            return $"{digito1}{digito2}";
+        }
+    }
+
+    public class ValidadorConfirmacao
+    {
+        public static bool ConfirmarDados(string nome, string telefone, string email, string cpf)
+        {
+            string resposta = "";
+            bool dadosConfirmados = false;
+            while (!dadosConfirmados)
             {
-                Thread.Sleep(500);
-                ComandoTutoria();
+                Console.WriteLine("\nChatbot: Por favor, confirme os seus dados.");
+                Console.WriteLine($"Nome: {nome}");
+                Console.WriteLine($"Telefone: {telefone}");
+                Console.WriteLine($"E-mail: {email}");
+                Console.WriteLine($"CPF: {cpf}");
+                Console.Write("Chatbot: Os dados estão corretos? (sim/não): ");
+                resposta = Console.ReadLine()?.ToLower();
+                if (resposta == "sim")
+                {
+                    Console.WriteLine("Chatbot: Dados CONFIRMADOS COM SUCESSO!");
+                    dadosConfirmados = true;
+                }
+                else
+                {
+                    Console.WriteLine("Chatbot: Por favor, digite os dados novamente.");
+                    return false;
+                }
             }
-            else if (input.Contains("tesouraria"))
+
+            return true;
+        }
+    }
+
+    public class VerificarMatriculaExistente
+    {
+        private Dictionary<string, Aluno> alunos;
+
+        public VerificarMatriculaExistente()
+        {
+            alunos = new Dictionary<string, Aluno>
             {
-                ComandoTesouraria();
-            }
-            else if (input.Contains("secretaria"))
+                {
+                    "56402793892",
+                    new Aluno("Maria", "56402793892", "11988888888", "maria@email.com", "G824130")
+                }
+            };
+        }
+
+        public Aluno ValCandidato()
+        {
+            var nomeVal = new Validadores.ValidadorNome();
+            var emailVal = new Validadores.ValidadorEmail();
+            var telefoneVal = new Validadores.ValidadorTelefone();
+            var cpfVal = new Validadores.ValidadorCPF();
+            string nome = nomeVal.SolicitarNome();
+            string telefone = telefoneVal.Validar();
+            string email = emailVal.Validar();
+            string cpf = cpfVal.Validar();
+            if (alunos.ContainsKey(cpf))
             {
-                ComandoSecretaria();
+                var alunoExistente = alunos[cpf];
+                Console.WriteLine($"Chatbot: CPF já matriculado! Matrícula: {alunoExistente.Matricula}");
+                return null;
             }
             else
             {
-                Console.WriteLine($"Chatbot: Desculpe, {nomeUsuario}, não entendi o que você disse.");
+                Console.Write("Chatbot: Não matriculado. Deseja realizar a inscrição? (sim/não): ");
+                string resposta = Console.ReadLine()?.ToLower();
+                if (resposta == "sim")
+                {
+                    bool dadosConfirmados = ValidadorConfirmacao.ConfirmarDados(nome, telefone, email, cpf);
+                    if (dadosConfirmados)
+                    {
+                        string matricula = GerarMatricula();
+                        var novoAluno = new Alunos.Aluno(nome, cpf, telefone, email, matricula);
+                        alunos.Add(cpf, novoAluno);
+                        Console.WriteLine($"Chatbot: Matrícula efetivada com sucesso! Matrícula: {matricula}");
+                        return novoAluno;
+                    }
+                    else
+                    {
+                        Console.Write("Dados incorretos, altere, por gentileza.");
+                        return null;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Chatbot: Inscrição não realizada.");
+                    return null;
+                }
             }
         }
-    }
 
-    public void ComandoTutoria()
-    {
-        Console.WriteLine($"Chatbot: {nomeUsuario}, você pode ligar para a tutoria no 0800 010 9000 (opção 2 após o CPF).");
-    }
-
-    public void ComandoTesouraria()
-    {
-
-
-        Console.WriteLine($"Chatbot: Ok {nomeUsuario}, consultando suas pendências financeiras...\n");
-
-        Random rnd = new Random();
-        int quantidadeDividas = rnd.Next(0, 4);
-
-        if (quantidadeDividas == 0)
+        private string GerarMatricula()
         {
-            Console.WriteLine($"Chatbot: Parabéns, {nomeUsuario}, você está sem pendências financeiras!");
-            return;
+            return Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
-
-        string[] descricoes = {
-        "Mensalidade Março",
-        "Mensalidade Abril",
-        "Mensalidade Janeiro",
-        "Material Fevereiro",
-        "Mensalidade Maio",
-        "Mensalidade Junho"
-    };
-
-        decimal totalDividas = 0;
-
-        for (int i = 1; i <= quantidadeDividas; i++)
-        {
-            string descricao = descricoes[rnd.Next(descricoes.Length)];
-            decimal valor = rnd.Next(50, 7000);
-            totalDividas += valor;
-
-            Console.WriteLine($"- {descricao}: R$ {valor:F2}");
-        }
-
-        Console.WriteLine($"\nTotal em aberto: R$ {totalDividas:F2}");
-        Console.WriteLine("Chatbot: Para resolver suas pendências, entre em contato com a tesouraria ou acesse o portal.");
-    }
-
-
-    public void ComandoSecretaria()
-    {
-        Console.WriteLine($"Chatbot: A parte da secretaria está em construção, {nomeUsuario}.");
     }
 }
-
-
-
